@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour
@@ -12,11 +13,9 @@ public class CameraController : MonoBehaviour
     private float m_camMaxDist = 10.0f;
     [SerializeField]
     private float m_camMinDist = 2.0f;
+    [SerializeField]
+    private float scrollSpeed = 4.0f; // Scroll speed
 
-
-    private void Awake()
-    {
-    }
 
     // Update is called once per frame
     void Update()
@@ -39,13 +38,16 @@ public class CameraController : MonoBehaviour
 
     private void UpdateVerticalMovements()
     {
+        //we get the mouse Y
         float currentAngleY = Input.GetAxis("Mouse Y") * m_rotationSpeed;
+        //we get the x rotation of the cam (using eulerAngles for some reason)
         float eulersAngleX = transform.rotation.eulerAngles.x;
-
+        //we add the 2 for some reason
         float comparisonAngle = eulersAngleX + currentAngleY;
-
+        //we clamp it - actually, we're just keeping the values between -180 and 180
         comparisonAngle = ClampAngle(comparisonAngle);
-
+        //perguntar Maxime - se currAngleY (mouseY) < 0? E addedAngles <  m_clampingXRotationValues.x (que é 0?)
+        //OU a mesma coisa se for maior...
         if ((currentAngleY < 0 && comparisonAngle < m_clampingXRotationValues.x)
             || (currentAngleY > 0 && comparisonAngle > m_clampingXRotationValues.y))
         {
@@ -57,29 +59,31 @@ public class CameraController : MonoBehaviour
     private void UpdateCameraScroll()
     {
         if (Input.mouseScrollDelta.y != 0)
-        {
+        {    
             //TODO: Faire une vérification selon la distance la plus proche ou la plus éloignée
             //Que je souhaite entre ma caméra et mon objet
-            //float charStartZ =
-            
-            float currCam2CharDist = m_objectToLookAt.transform.position.z - transform.position.z;
 
+            float currCam2CharDist = m_objectToLookAt.transform.position.z - transform.position.z;
             //Debug.Log("scroll" + camDist);
             if ((currCam2CharDist > m_camMinDist) && (currCam2CharDist < m_camMaxDist))
             {
                 //TODO: Lerp plutôt que d'effectuer immédiatement la translation
-                transform.Translate(Vector3.forward * Input.mouseScrollDelta.y, Space.Self);
-                
+                //on trouve la prochaine position
+                Vector3 targetPos = transform.position + Vector3.forward * Input.mouseScrollDelta.y;
+                //et on Lerp vers elle
+                transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * scrollSpeed);
             }
             else
             {
-               if(currCam2CharDist < m_camMinDist)
+               if(currCam2CharDist <= m_camMinDist)
                 {
-                    transform.Translate(Vector3.back*0.5f, Space.Self);
+                    return;
+                    //transform.Translate(Vector3.back*0.5f, Space.Self);
                 }
-               else if(currCam2CharDist > m_camMaxDist)
+               else if(currCam2CharDist >= m_camMaxDist)
                 {
-                    transform.Translate(Vector3.forward * 0.5f, Space.Self);
+                    return;
+                    //transform.Translate(Vector3.forward * 0.5f, Space.Self);
                 }
             }
         }
@@ -142,5 +146,35 @@ public class CameraController : MonoBehaviour
         {
             transform.Translate(Vector3.forward * (target.position.z - maxDistance - transform.position.z), Space.World);
         }
+
+using UnityEngine;
+
+public class CameraController : MonoBehaviour
+{
+    public Transform target; // The character's position
+    public float minDistance = 2f; // Minimum distance on the z-axis
+    public float maxDistance = 10f; // Maximum distance on the z-axis
+    public float scrollSpeed = 2f; // Scroll speed
+
+    private Vector3 targetPosition;
+
+    void Start()
+    {
+        targetPosition = transform.position;
+    }
+
+    void Update()
+    {
+        float scrollInput = Input.GetAxis("Mouse ScrollWheel");
+        float offsetZ = scrollInput * scrollSpeed;
+
+        // Calculate the new target position
+        targetPosition.z = Mathf.Clamp(targetPosition.z - offsetZ, target.position.z - maxDistance, target.position.z - minDistance);
+
+        // Interpolate camera position using Lerp
+        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * scrollSpeed);
+    }
+}
+
 */
 
