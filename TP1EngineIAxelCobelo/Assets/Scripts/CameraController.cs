@@ -14,7 +14,7 @@ public class CameraController : MonoBehaviour
     [SerializeField]
     private float m_camMinDist = 2.0f;
     [SerializeField]
-    private float scrollSpeed = 4.0f; // Scroll speed
+    private float scrollSpeed = 2.0f; // Scroll speed
 
 
     // Update is called once per frame
@@ -64,7 +64,6 @@ public class CameraController : MonoBehaviour
             //Que je souhaite entre ma caméra et mon objet
 
             float currCam2CharDist = m_objectToLookAt.transform.position.z - transform.position.z;
-            //Debug.Log("scroll" + camDist);
             if ((currCam2CharDist > m_camMinDist) && (currCam2CharDist < m_camMaxDist))
             {
                 //TODO: Lerp plutôt que d'effectuer immédiatement la translation
@@ -77,13 +76,13 @@ public class CameraController : MonoBehaviour
             {
                if(currCam2CharDist <= m_camMinDist)
                 {
-                    return;
-                    //transform.Translate(Vector3.back*0.5f, Space.Self);
+                    //return;
+                    transform.Translate(Vector3.back*0.25f, Space.Self);
                 }
                else if(currCam2CharDist >= m_camMaxDist)
                 {
-                    return;
-                    //transform.Translate(Vector3.forward * 0.5f, Space.Self);
+                    //return;
+                    transform.Translate(Vector3.forward * 0.25f, Space.Self);
                 }
             }
         }
@@ -93,14 +92,26 @@ public class CameraController : MonoBehaviour
     {
         int layerMask = 1 << 8;
         RaycastHit hit;
-        if(Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, layerMask))
+        var vecteurDiff = transform.position - m_objectToLookAt.position;
+        var distance = vecteurDiff.magnitude;
+
+        //if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, Mathf.Infinity, layerMask))
+        //{
+        //   Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward)*hit.distance, Color.yellow);
+        //   Debug.Log("Hit!");
+        //}
+        //else
+        //{
+        //    Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward)*hit.distance, Color.white);
+        //}
+        if (Physics.Raycast(m_objectToLookAt.position, vecteurDiff, out hit, distance, layerMask))
         {
-            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * hit.distance, Color.yellow);
-            //Debug.Log("Hit!");
+            Debug.DrawRay(m_objectToLookAt.position, vecteurDiff * hit.distance, Color.green);
+            Debug.Log("Hit!");
         }
         else
         {
-            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * hit.distance, Color.white);
+            Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * hit.distance, Color.red);
         }
     }
 
